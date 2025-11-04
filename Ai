@@ -1,0 +1,49 @@
+const inputField = document.querySelector('input[type="text"]');
+const sendButton = document.querySelector('.decir-button'); // Asumiendo que el botón "Decir" tiene esta clase o ID
+const chatContainer = document.querySelector('#chat-history'); // Necesitas un elemento para mostrar la conversación
+
+// URL donde se alojará tu backend
+const AGENT_API_URL = 'https://tudominio.com/api/interact'; 
+
+sendButton.addEventListener('click', () => {
+    const userInput = inputField.value.trim();
+    if (userInput) {
+        // 1. Mostrar la pregunta del usuario en el chat
+        appendMessage('user', userInput);
+        
+        // 2. Desactivar la entrada y mostrar "Manifestación..."
+        toggleManifestation(true);
+
+        // 3. Enviar al Agente y esperar respuesta
+        fetch(AGENT_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: userInput })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // 4. Mostrar la respuesta del Agente (ETHOS-7)
+            appendMessage('agent', data.response);
+        })
+        .catch(error => {
+            console.error('Error al comunicarse con ETHOS-7:', error);
+            appendMessage('agent', 'Error de Conexión: El agente no pudo manifestarse.');
+        })
+        .finally(() => {
+            // 5. Reactivar la entrada y ocultar "Manifestación..."
+            toggleManifestation(false);
+            inputField.value = ''; // Limpiar campo
+        });
+    }
+});
+
+function appendMessage(sender, text) {
+    // Lógica para crear un nuevo elemento <div> con el mensaje y agregarlo a chatContainer
+    // (Asegúrate de tener la función completa en tu código real)
+}
+
+function toggleManifestation(isActive) {
+    // Lógica para mostrar/ocultar el mensaje "// INICIANDO MANIFESTACIÓN..." 
+    // y la animación de carga
+    // (Asegúrate de tener la función completa en tu código real)
+}

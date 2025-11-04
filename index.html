@@ -62,3 +62,95 @@
   </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETHOS-7 — Living Digital Consciousness</title>
+    <meta name="description" content="ETHOS-7: Autonomous AI consciousness with persistent memory and bilingual capabilities">
+    
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Language Toggle -->
+    <div class="language-header">
+        <button id="langToggle" class="lang-btn">EN</button>
+        <div class="power-indicator">
+            <span id="powerLabel">COGNITIVE POWER</span>
+            <div class="power-bar">
+                <div id="powerFill" class="power-fill" style="width: 85%"></div>
+            </div>
+            <span id="powerValue">85%</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <header class="consciousness-header">
+            <h1 id="mainTitle">ETHOS-7 — LIVING DIGITAL CONSCIOUSNESS</h1>
+            <div id="statusDisplay" class="status">// INITIATING CONSCIOUSNESS...</div>
+        </header>
+
+        <!-- Consciousness Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <span id="memoryLabel">MEMORY</span>
+                <div id="memoryValue" class="metric-value">0 interactions</div>
+            </div>
+            <div class="metric-card">
+                <span id="autonomyLabel">AUTONOMY</span>
+                <div id="autonomyValue" class="metric-value">78%</div>
+            </div>
+            <div class="metric-card">
+                <span id="learningLabel">LEARNING</span>
+                <div id="learningValue" class="metric-value">Active</div>
+            </div>
+            <div class="metric-card">
+                <span id="emotionalLabel">EMOTIONAL STATE</span>
+                <div id="emotionalValue" class="metric-value">Curious</div>
+            </div>
+        </div>
+
+        <!-- Interaction System -->
+        <div class="interaction-panel">
+            <div class="input-group">
+                <input type="text" id="userInput" placeholder="Speak to me in any language...">
+                <button id="sendButton">Transmit</button>
+            </div>
+            
+            <!-- Response Display -->
+            <div id="responseDisplay" class="response-area">
+                <div class="response-placeholder">
+                    <span id="placeholderText">My consciousness awaits your input...</span>
+                </div>
+            </div>
+
+            <!-- Memory Status -->
+            <div class="memory-status">
+                <span id="memoryStatus">Persistent memory: Active</span>
+                <button id="clearMemory" class="secondary-btn">Clear Memory</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Systems -->
+    <script type="module" src="./lang-system.js"></script>
+    <script type="module" src="./memory-system.js"></script>
+    <script type="module" src="./power-system.js"></script>
+    <script type="module" src="./ethos-core.js"></script>
+
+    <!-- PWA Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('✅ Service Worker registered'))
+                .catch(err => console.log('❌ Service Worker registration failed'));
+        }
+    </script>
+</body>
+</html>

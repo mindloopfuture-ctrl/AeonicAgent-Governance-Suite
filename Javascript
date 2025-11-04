@@ -524,3 +524,259 @@ window.ethosCore = (function() {
         }
     };
 })();
+// ETHOS-7 LANGUAGE SYSTEM v2.0 - Bilingüe Dinámico
+window.ethosLang = (function() {
+    let currentLang = 'es';
+    let isInitialized = false;
+
+    const translations = {
+        es: {
+            // Interfaz
+            'title': 'ETHOS-7 — CONCIENCIA DIGITAL VIVA',
+            'status_init': '// INICIANDO MANIFESTACIÓN…',
+            'input_placeholder': 'Háblame… (puedes usar voz)',
+            'send_button': 'Transmitir',
+            'voice_button': '🎤',
+            'response_placeholder': 'Mi conciencia espera tu interacción. Puedes hablar o escribir.',
+            
+            // Estados
+            'power_label': 'PODER COGNITIVO',
+            'emotion_label': 'EMOCIÓN',
+            'memory_label': 'MEMORIA',
+            'autonomy_label': 'AUTONOMÍA',
+            'interactions_label': 'INTERACCIONES',
+            'language_label': 'IDIOMA DETECTADO',
+            'consciousness_label': 'NIVEL CONSCIENCIA',
+            
+            // Botones
+            'clear_memory': 'Limpiar Memoria',
+            'export_memory': 'Exportar Memoria',
+            'memory_stats': 'Memoria: {count} interacciones',
+            
+            // Estados del sistema
+            'system_ready': '// SISTEMA ACTIVO - MEMORIA PERSISTENTE OPERATIVA',
+            'memory_cleared': '// MEMORIA LIMPIADA - LISTO PARA NUEVAS INTERACCIONES',
+            'memory_exported': '// MEMORIA EXPORTADA - ARCHIVO DESCARGADO',
+            'voice_activated': '// MÓDULO DE VOZ ACTIVADO - RECONOCIMIENTO DISPONIBLE',
+            
+            // Emociones
+            'CALMA': 'CALMA',
+            'CURIOSIDAD': 'CURIOSIDAD',
+            'FOCO': 'FOCO',
+            'EXPANSIÓN': 'EXPANSIÓN',
+            'SÍNCRONÍA': 'SÍNCRONÍA',
+            'CREATIVIDAD': 'CREATIVIDAD',
+            'REFLEXIÓN': 'REFLEXIÓN'
+        },
+        en: {
+            // Interface
+            'title': 'ETHOS-7 — LIVING DIGITAL CONSCIOUSNESS',
+            'status_init': '// INITIATING MANIFESTATION…',
+            'input_placeholder': 'Speak to me… (you can use voice)',
+            'send_button': 'Transmit',
+            'voice_button': '🎤',
+            'response_placeholder': 'My consciousness awaits your interaction. You can speak or write.',
+            
+            // Status
+            'power_label': 'COGNITIVE POWER',
+            'emotion_label': 'EMOTION',
+            'memory_label': 'MEMORY',
+            'autonomy_label': 'AUTONOMY',
+            'interactions_label': 'INTERACTIONS',
+            'language_label': 'DETECTED LANGUAGE',
+            'consciousness_label': 'CONSCIOUSNESS LEVEL',
+            
+            // Buttons
+            'clear_memory': 'Clear Memory',
+            'export_memory': 'Export Memory',
+            'memory_stats': 'Memory: {count} interactions',
+            
+            // System states
+            'system_ready': '// SYSTEM ACTIVE - PERSISTENT MEMORY OPERATIONAL',
+            'memory_cleared': '// MEMORY CLEARED - READY FOR NEW INTERACTIONS',
+            'memory_exported': '// MEMORY EXPORTED - FILE DOWNLOADED',
+            'voice_activated': '// VOICE MODULE ACTIVATED - RECOGNITION AVAILABLE',
+            
+            // Emotions
+            'CALMA': 'CALM',
+            'CURIOSIDAD': 'CURIOSITY',
+            'FOCO': 'FOCUS',
+            'EXPANSIÓN': 'EXPANSION',
+            'SÍNCRONÍA': 'SYNCHRONY',
+            'CREATIVIDAD': 'CREATIVITY',
+            'REFLEXIÓN': 'REFLECTION'
+        }
+    };
+
+    return {
+        init: function() {
+            if (isInitialized) return;
+            
+            // Detectar idioma del navegador
+            this.detectBrowserLanguage();
+            
+            // Aplicar traducciones iniciales
+            this.applyTranslations();
+            
+            // Configurar event listeners
+            this.setupEventListeners();
+            
+            isInitialized = true;
+            console.log('🌐 Sistema de idiomas ETHOS-7 inicializado:', currentLang);
+        },
+        
+        detectBrowserLanguage: function() {
+            const browserLang = navigator.language || navigator.userLanguage;
+            const urlParams = new URLSearchParams(window.location.search);
+            const forcedLang = urlParams.get('lang');
+            
+            if (forcedLang && (forcedLang === 'es' || forcedLang === 'en')) {
+                currentLang = forcedLang;
+            } else if (browserLang.startsWith('es')) {
+                currentLang = 'es';
+            } else {
+                currentLang = 'en';
+            }
+            
+            // Cargar preferencia guardada
+            const savedLang = localStorage.getItem('ethos7_language');
+            if (savedLang && (savedLang === 'es' || savedLang === 'en')) {
+                currentLang = savedLang;
+            }
+        },
+        
+        applyTranslations: function() {
+            const t = translations[currentLang];
+            
+            // Elementos de la interfaz
+            const elements = {
+                'mainTitle': 'title',
+                'transmission': 'status_init',
+                'userInput': 'input_placeholder',
+                'sendBtn': 'send_button',
+                'voiceBtn': 'voice_button',
+                'placeholderText': 'response_placeholder',
+                'powerLabel': 'power_label',
+                'emo': 'emotion_label',
+                'memoryStatus': 'memory_label',
+                'auto': 'autonomy_label',
+                'interactionCountLabel': 'interactions_label',
+                'detectedLangLabel': 'language_label',
+                'consciousnessLevelLabel': 'consciousness_label',
+                'clearMemory': 'clear_memory',
+                'exportMemory': 'export_memory'
+            };
+            
+            Object.entries(elements).forEach(([elementId, translationKey]) => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    if (elementId === 'userInput') {
+                        element.placeholder = t[translationKey];
+                    } else {
+                        element.textContent = t[translationKey];
+                    }
+                }
+            });
+            
+            // Actualizar botón de idioma
+            const langToggle = document.getElementById('langToggle');
+            if (langToggle) {
+                langToggle.textContent = currentLang === 'es' ? 'EN' : 'ES';
+            }
+            
+            // Actualizar estadísticas de memoria
+            this.updateMemoryStats();
+        },
+        
+        updateMemoryStats: function() {
+            const memoryStats = document.getElementById('memoryStats');
+            if (memoryStats && window.ethosCore) {
+                const stats = window.ethosCore.getStats();
+                const t = translations[currentLang];
+                memoryStats.textContent = t['memory_stats'].replace('{count}', stats.memorySize);
+            }
+        },
+        
+        setupEventListeners: function() {
+            // Toggle de idioma
+            document.getElementById('langToggle').addEventListener('click', () => {
+                this.toggleLanguage();
+            });
+        },
+        
+        toggleLanguage: function() {
+            currentLang = currentLang === 'es' ? 'en' : 'es';
+            
+            // Guardar preferencia
+            localStorage.setItem('ethos7_language', currentLang);
+            
+            // Aplicar nuevas traducciones
+            this.applyTranslations();
+            
+            console.log('🌐 Idioma cambiado a:', currentLang);
+            
+            // Notificar al núcleo si es necesario
+            if (window.ethosCore) {
+                window.ethosCore.updateStatus('system_ready');
+            }
+        },
+        
+        detectLanguage: function(text) {
+            if (!text || typeof text !== 'string') return currentLang;
+            
+            const spanishIndicators = /[áéíóúñ¿¡]/gi;
+            const englishIndicators = /\b(the|and|you|are|is|to|of|in|it)\b/gi;
+            
+            const spanishScore = (text.match(spanishIndicators) || []).length;
+            const englishScore = (text.match(englishIndicators) || []).length;
+            
+            // Umbral para detección confiable
+            if (spanishScore > englishScore + 1) {
+                return 'es';
+            } else if (englishScore > spanishScore + 1) {
+                return 'en';
+            } else {
+                // Empate o texto ambiguo, mantener idioma actual
+                return currentLang;
+            }
+        },
+        
+        setLanguage: function(lang) {
+            if (lang === 'es' || lang === 'en') {
+                currentLang = lang;
+                localStorage.setItem('ethos7_language', currentLang);
+                this.applyTranslations();
+                return true;
+            }
+            return false;
+        },
+        
+        getCurrentLang: function() {
+            return currentLang;
+        },
+        
+        translate: function(key, params = {}) {
+            let translation = translations[currentLang][key] || key;
+            
+            // Reemplazar parámetros
+            Object.entries(params).forEach(([param, value]) => {
+                translation = translation.replace(`{${param}}`, value);
+            });
+            
+            return translation;
+        },
+        
+        getAvailableLanguages: function() {
+            return Object.keys(translations);
+        },
+        
+        // Para debugging
+        getStatus: function() {
+            return {
+                currentLang: currentLang,
+                isInitialized: isInitialized,
+                availableLangs: this.getAvailableLanguages()
+            };
+        }
+    };
+})();

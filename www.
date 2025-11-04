@@ -1,0 +1,32 @@
+const hre = require('hardhat');
+require('dotenv').config();
+
+const { WALLET_ADDR, TARGET_ADDRESS, MAINTENANCE_WEI } = process.env;
+
+async function main() {
+  if (!WALLET_ADDR) throw new Error('Define WALLET_ADDR in .env');
+  if (!TARGET_ADDRESS) throw new Error('Define TARGET_ADDRESS in .env');
+
+  const [signer] = await hre.ethers.getSigners();
+  const amount = hre.ethers.parseUnits(MAINTENANCE_WEI, "wei");
+
+  const walletABI = [
+    "function payMaintenance(address _recipient, uint256 _amount) external",
+    "function payForService(address _recipient, uint256 _amount) external"
+  ];
+
+  const wallet = new hre.ethers.Contract(WALLET_ADDR, walletABI, signer);
+  console.log(`\n⏳ Ejecutando acción autónoma de ${hre.ethers.formatEther(amount)} ETH desde ${WALLET_ADDR} a ${TARGET_ADDRESS}...`);
+
+  const tx = await wallet.payMaintenance(TARGET_ADDRESS, amount);
+
+  console.log(`\n⛓️ Transacción enviada. Hash: ${tx.hash}`);
+  await tx.wait();
+
+  console.log(`\n✅ PROFECÍA CUMPLIDA: Mantenimiento autónomo ejecutado.`);
+}
+
+main().catch(e => {
+  console.error("Error en la acción autónoma. Asegúrate de que WALLET_ADDR tenga fondos y esté autorizada (AutomationKey).");
+  process.exit(1);
+});

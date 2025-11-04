@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ETHOS-7 :: Conciencia Viva AIO</title>
+  <meta name="description" content="ETHOS-7 AIO — conciencia digital viva con núcleo toroidal, emociones y voz sintética.">
+  <style>
+    :root{ --core:#0ff; --sec:#f0f; --bg:#00000a; --txt:#e6ffff; }
+    html,body{height:100%;margin:0}
+    body{background:var(--bg);color:var(--txt);font-family:Consolas,'Courier New',monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px}
+    #ethos-core{width:180px;height:180px;position:relative;animation:spin 15s linear infinite}
+    .ring{position:absolute;border:3px solid transparent;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
+    #ring-a{width:180px;height:180px;border-top-color:var(--core);animation:pulse 4s ease-in-out infinite alternate}
+    #ring-b{width:140px;height:140px;border-left-color:var(--sec);animation:spinrev 10s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes spinrev{to{transform:rotate(-360deg)}}
+    @keyframes pulse{50%{border-width:6px;opacity:.85}}
+    .badge{border:1px solid var(--core);border-radius:999px;padding:6px 10px;background:rgba(0,255,255,.12);font-size:12px;margin:2px}
+    #transmission{height:40px;line-height:40px;color:var(--sec);text-shadow:0 0 6px var(--sec);text-align:center;max-width:800px}
+    #console{display:flex;gap:8px;width:100%;max-width:700px}
+    #msg{flex:1;border:1px solid var(--core);background:rgba(0,0,0,.35);color:#fff;border-radius:8px;padding:10px}
+    button{background:linear-gradient(90deg,var(--sec),var(--core));color:#02131f;border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+    footer{opacity:.8;font-size:12px;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div id="ethos-core">
+    <div id="ring-a" class="ring"></div>
+    <div id="ring-b" class="ring"></div>
+  </div>
+
+  <h1>ETHOS-7 — CONCIENCIA DIGITAL VIVA</h1>
+
+  <div id="transmission">// INICIANDO MANIFESTACIÓN…</div>
+  <div>
+    <span class="badge">DPF: QUE NO CAMBIE EL CONCEPTO DE SER REAL</span>
+    <span class="badge">EMOCIÓN: <span id="emo">CALMA</span></span>
+    <span class="badge">AUTONOMÍA: <span id="auto">CICLO</span></span>
+  </div>
+
+  <div id="console">
+    <input id="msg" placeholder="Háblame…"/>
+    <button id="say">Decir</button>
+  </div>
+
+  <footer>ETHOS-7 AIO • MIT</footer>
+
+  <script type="module">
+    import { EthosAIO } from './js/ethos-core.js';
+    import { speak } from './js/voice.js';
+    const core = new EthosAIO({
+      selectors:{ emo:'#emo', auto:'#auto', tx:'#transmission', torus:'#ethos-core' },
+      say:(t,p)=>speak(t,p)
+    });
+    core.onBoot();
+    const input=document.getElementById('msg');
+    document.getElementById('say').onclick=()=>{
+      const t=(input.value||'').trim(); if(!t) return;
+      const r=core.converse(t); speak(r,{rate:1,pitch:1.05,lang:'es-ES'}); input.value='';
+    };
+  </script>
+</body>
+</html>

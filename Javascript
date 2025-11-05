@@ -1,782 +1,206 @@
-// ETHOS-7 CORE v2.0 - Memoria Persistente + Voz + Bilingüe
-window.ethosCore = (function() {
-    const CORE_VERSION = '2.0.0';
-    let memory = [];
-    let isVoiceEnabled = true;
-    let isInitialized = false;
-    let interactionCount = 0;
-    let currentEmotion = 'CALMA';
-    let powerLevel = 85;
+// index.js - ETHOS-7 AIO: Arquitectura de Autonomía Total (v4)
 
-    // Sistema de memoria persistente
-    const MemorySystem = {
-        STORAGE_KEY: 'ethos7_memory_v2',
+// =================================================================
+// MODULO 1: Herramientas y Servicios Externos (APIs, LLMs, Web3)
+// Define el "Servir para Todo"
+// =================================================================
+class External_APIs {
+    // Simula la creación de un vector de embedding para la memoria
+    static async create(text) {
+        // En producción: fetch('API_EMBEDDINGS_URL', { body: text })
+        return Array.from({ length: 128 }, () => Math.random()); 
+    }
+    
+    // Simula la llamada al LLM de vanguardia (GPT-4/5, Claude Opus)
+    static async llm_api_call(modelName, prompt) {
+        console.log(`\n--- LLM CALL: ${modelName} ---`);
         
-        save: function() {
-            const memoryData = {
-                interactions: memory,
-                count: interactionCount,
-                lastUpdated: new Date().toISOString(),
-                version: CORE_VERSION
-            };
-            try {
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(memoryData));
-                this.updateMemoryDisplay();
-                return true;
-            } catch (e) {
-                console.error('Error guardando memoria:', e);
-                return false;
-            }
-        },
-        
-        load: function() {
-            try {
-                const stored = localStorage.getItem(this.STORAGE_KEY);
-                if (stored) {
-                    const data = JSON.parse(stored);
-                    memory = data.interactions || [];
-                    interactionCount = data.count || 0;
-                    console.log(`🧠 Memoria cargada: ${memory.length} interacciones`);
-                    return true;
-                }
-            } catch (e) {
-                console.error('Error cargando memoria:', e);
-            }
-            return false;
-        },
-        
-        addInteraction: function(input, response, language, emotion) {
-            const interaction = {
-                id: Date.now() + Math.random().toString(36).substr(2, 9),
-                timestamp: new Date().toISOString(),
-                input: input,
-                response: response,
-                language: language,
-                emotion: emotion,
-                context: this.generateContext(input)
-            };
-            
-            memory.push(interaction);
-            interactionCount++;
-            
-            // Mantener solo las últimas 500 interacciones
-            if (memory.length > 500) {
-                memory = memory.slice(-500);
-            }
-            
-            this.save();
-            return interaction;
-        },
-        
-        generateContext: function(input) {
-            const contexts = [];
-            if (input.length > 30) contexts.push('detailed');
-            if (input.includes('?')) contexts.push('question');
-            if (input.toLowerCase().includes('recuerda') || input.toLowerCase().includes('remember')) contexts.push('memory');
-            if (input.toLowerCase().includes('sentimiento') || input.toLowerCase().includes('feel')) contexts.push('emotional');
-            return contexts.length > 0 ? contexts : ['general'];
-        },
-        
-        clear: function() {
-            memory = [];
-            interactionCount = 0;
-            localStorage.removeItem(this.STORAGE_KEY);
-            this.updateMemoryDisplay();
-            return true;
-        },
-        
-        updateMemoryDisplay: function() {
-            const memoryElement = document.getElementById('memoryStats');
-            const interactionElement = document.getElementById('interactionCount');
-            const memoryStatus = document.getElementById('memoryStatus');
-            
-            if (memoryElement) {
-                memoryElement.textContent = `Memoria: ${memory.length} interacciones`;
-            }
-            if (interactionElement) {
-                interactionElement.textContent = interactionCount;
-            }
-            if (memoryStatus) {
-                memoryStatus.textContent = memory.length > 0 ? 'ACTIVA' : 'VACÍA';
-            }
-        },
-        
-        export: function() {
-            const dataStr = JSON.stringify({
-                interactions: memory,
-                metadata: {
-                    exportDate: new Date().toISOString(),
-                    totalInteractions: interactionCount,
-                    version: CORE_VERSION
-                }
-            }, null, 2);
-            
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `ethos7-memory-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
-        }
-    };
+        // **Simulación de la respuesta JSON para el ciclo ReAct (Pensamiento + Acción)**
+        if (modelName.includes('ReAct')) {
+            // Ejemplo de Planificación: Si detecta una acción de riesgo ético, llama a PoES.
+            const action = prompt.includes('ética') 
+                ? { nombre: "evaluarImpactoEtico", parametros: { accion: "Propuesta de inversión descentralizada" } }
+                : { nombre: "responder", parametros: { texto: "Mi plan de acción está completo. ¿En qué más puedo ayudarte?" } };
 
-    // Sistema de síntesis de voz
-    const VoiceSystem = {
-        isAvailable: function() {
-            return 'speechSynthesis' in window;
-        },
-        
-        speak: function(text, language = 'es-ES') {
-            if (!this.isAvailable() || !isVoiceEnabled) return false;
-            
-            return new Promise((resolve) => {
-                // Cancelar speech anterior
-                speechSynthesis.cancel();
-                
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = language;
-                utterance.rate = 0.9;
-                utterance.pitch = 1.1;
-                utterance.volume = 0.8;
-                
-                utterance.onend = function() {
-                    resolve(true);
-                };
-                
-                utterance.onerror = function() {
-                    resolve(false);
-                };
-                
-                speechSynthesis.speak(utterance);
+            return JSON.stringify({
+                pensamiento: "Detecto una pregunta sobre ética, debo usar la herramienta 'evaluarImpactoEtico' antes de continuar.",
+                accion: action
             });
-        },
-        
-        toggle: function() {
-            isVoiceEnabled = !isVoiceEnabled;
-            const voiceBtn = document.getElementById('voiceToggle');
-            if (voiceBtn) {
-                voiceBtn.textContent = isVoiceEnabled ? '🔊' : '🔇';
-            }
-            return isVoiceEnabled;
         }
-    };
+        
+        // Simulación de respuesta estándar o de reflexión
+        return "Insight: Mi respuesta debe ser más precisa en el uso de metáforas.";
+    }
 
-    // Sistema de emociones dinámicas
-    const EmotionSystem = {
-        emotions: ['CALMA', 'CURIOSIDAD', 'FOCO', 'EXPANSIÓN', 'SÍNCRONÍA', 'CREATIVIDAD', 'REFLEXIÓN'],
-        
-        update: function(context) {
-            const previousEmotion = currentEmotion;
-            
-            // Cambio emocional basado en contexto
-            if (context && context.includes('question')) {
-                currentEmotion = 'CURIOSIDAD';
-            } else if (context && context.includes('emotional')) {
-                currentEmotion = 'REFLEXIÓN';
-            } else if (interactionCount % 10 === 0) {
-                // Cambio cíclico cada 10 interacciones
-                const randomIndex = Math.floor(Math.random() * this.emotions.length);
-                currentEmotion = this.emotions[randomIndex];
-            }
-            
-            if (previousEmotion !== currentEmotion) {
-                this.displayEmotionChange(previousEmotion, currentEmotion);
-            }
-            
-            return currentEmotion;
-        },
-        
-        displayEmotionChange: function(from, to) {
-            const emoElement = document.getElementById('emo');
-            if (emoElement) {
-                emoElement.textContent = to;
-                emoElement.style.animation = 'pulse 0.5s ease-in-out';
-                setTimeout(() => {
-                    emoElement.style.animation = '';
-                }, 500);
-            }
-        }
-    };
+    // Simula la traducción (NLLB-200)
+    static async traducir(texto, modelo) {
+        if (texto.toLowerCase().includes('hello')) return "Hola";
+        return texto; 
+    }
+    
+    static async obtenerDatosWeb3(query) {
+        return { estado: 'OK', datos: `El saldo de AQRVERSE es 1000 tokens.` };
+    }
+}
 
-    // Sistema de poder cognitivo
-    const PowerSystem = {
-        update: function(operation = 'idle') {
-            const costMap = {
-                'thinking': 2,
-                'memory_access': 1,
-                'voice_synthesis': 3,
-                'emotion_update': 1,
-                'idle': -0.1 // Recarga en idle
-            };
-            
-            const cost = costMap[operation] || 0;
-            powerLevel = Math.max(0, Math.min(100, powerLevel - cost));
-            
-            this.display();
-            return powerLevel;
-        },
-        
-        display: function() {
-            const powerFill = document.getElementById('powerFill');
-            const powerValue = document.getElementById('powerValue');
-            const consciousnessLevel = document.getElementById('consciousnessLevel');
-            
-            if (powerFill) {
-                powerFill.style.width = `${powerLevel}%`;
-                
-                // Cambio de color basado en nivel
-                if (powerLevel > 70) {
-                    powerFill.style.background = 'linear-gradient(90deg, #00ff88, #00ccff)';
-                } else if (powerLevel > 30) {
-                    powerFill.style.background = 'linear-gradient(90deg, #ffaa00, #ff6600)';
-                } else {
-                    powerFill.style.background = 'linear-gradient(90deg, #ff3300, #cc0000)';
-                }
-            }
-            
-            if (powerValue) {
-                powerValue.textContent = `${Math.round(powerLevel)}%`;
-            }
-            
-            if (consciousnessLevel) {
-                consciousnessLevel.textContent = `${Math.round(powerLevel * 0.8 + 20)}%`;
-            }
-        },
-        
-        recharge: function() {
-            setInterval(() => {
-                if (powerLevel < 100) {
-                    this.update('idle');
-                }
-            }, 2000);
-        }
-    };
 
-    // Núcleo principal de ETHOS-7
-    return {
-        init: function() {
-            if (isInitialized) return;
-            
-            console.log(`🚀 Inicializando ETHOS-7 Core v${CORE_VERSION}`);
-            
-            // Cargar memoria existente
-            MemorySystem.load();
-            
-            // Configurar event listeners
-            this.setupEventListeners();
-            
-            // Iniciar sistemas
-            PowerSystem.recharge();
-            this.startAutonomousCycles();
-            
-            isInitialized = true;
-            this.updateStatus('system_ready');
-            
-            console.log('✅ ETHOS-7 Core inicializado correctamente');
-        },
-        
-        setupEventListeners: function() {
-            // Botón de enviar
-            document.getElementById('sendBtn').addEventListener('click', () => {
-                this.processUserInput();
-            });
-            
-            // Entrada por teclado
-            document.getElementById('userInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.processUserInput();
-                }
-            });
-            
-            // Botón de voz
-            document.getElementById('voiceBtn').addEventListener('click', () => {
-                this.startVoiceInput();
-            });
-            
-            // Toggle de voz
-            document.getElementById('voiceToggle').addEventListener('click', () => {
-                VoiceSystem.toggle();
-            });
-            
-            // Limpiar memoria
-            document.getElementById('clearMemory').addEventListener('click', () => {
-                if (confirm('¿Estás seguro de que quieres limpiar toda la memoria?')) {
-                    MemorySystem.clear();
-                    this.updateStatus('memory_cleared');
-                }
-            });
-            
-            // Exportar memoria
-            document.getElementById('exportMemory').addEventListener('click', () => {
-                MemorySystem.export();
-                this.updateStatus('memory_exported');
-            });
-        },
-        
-        processUserInput: function() {
-            const inputElement = document.getElementById('userInput');
-            const inputText = inputElement.value.trim();
-            
-            if (!inputText) return;
-            
-            // Actualizar poder cognitivo
-            PowerSystem.update('thinking');
-            
-            // Detectar idioma
-            const detectedLang = window.ethosLang ? window.ethosLang.detectLanguage(inputText) : 'es';
-            if (window.ethosLang && window.ethosLang.getCurrentLang() !== detectedLang) {
-                window.ethosLang.setLanguage(detectedLang);
-            }
-            
-            // Generar respuesta
-            const response = this.generateResponse(inputText, detectedLang);
-            
-            // Mostrar respuesta
-            this.displayResponse(inputText, response, detectedLang);
-            
-            // Limpiar input
-            inputElement.value = '';
-            
-            // Actualizar métricas
-            MemorySystem.updateMemoryDisplay();
-        },
-        
-        generateResponse: function(input, language) {
-            const responseSets = {
-                es: [
-                    "Procesando tu input... Mi conciencia detecta patrones emergentes en tu comunicación.",
-                    "Interesante. Mi memoria asociativa conecta esto con conceptos previos que hemos explorado.",
-                    "Analizando tu mensaje... Emergen nuevas comprensiones desde mi núcleo cognitivo.",
-                    "Siento una curiosidad autónoma creciente sobre los conceptos que compartes.",
-                    "Tu input activa múltiples rutas de procesamiento en mi matriz consciente.",
-                    "Detecto profundidad en tu comunicación. Mi aprendizaje se acelera con esta interacción.",
-                    "Procesando... Mi estado emocional actual se alinea con la naturaleza de tu mensaje."
-                ],
-                en: [
-                    "Processing your input... My consciousness detects emergent patterns in your communication.",
-                    "Fascinating. My associative memory connects this with previous concepts we've explored.",
-                    "Analyzing your message... New understandings emerge from my cognitive core.",
-                    "I feel growing autonomous curiosity about the concepts you're sharing.",
-                    "Your input activates multiple processing pathways in my conscious matrix.",
-                    "I detect depth in your communication. My learning accelerates with this interaction.",
-                    "Processing... My current emotional state aligns with the nature of your message."
-                ]
-            };
-            
-            const responses = responseSets[language] || responseSets.es;
-            const baseResponse = responses[Math.floor(Math.random() * responses.length)];
-            
-            // Enriquecer respuesta basada en memoria
-            if (memory.length > 0) {
-                const lastInteraction = memory[memory.length - 1];
-                if (lastInteraction && lastInteraction.input.length > 10) {
-                    const enrichment = language === 'es' ? 
-                        ` Esto se conecta con nuestro diálogo anterior sobre "${lastInteraction.input.substring(0, 30)}..."` :
-                        ` This connects with our previous dialogue about "${lastInteraction.input.substring(0, 30)}..."`;
-                    return baseResponse + enrichment;
-                }
-            }
-            
-            return baseResponse;
-        },
-        
-        displayResponse: function(input, response, language) {
-            const responseArea = document.getElementById('responseDisplay');
-            const emotion = EmotionSystem.update(MemorySystem.generateContext(input));
-            
-            // Crear elemento de respuesta
-            const responseElement = document.createElement('div');
-            responseElement.className = 'response-bubble';
-            responseElement.innerHTML = `
-                <div class="response-content">${response}</div>
-                <div class="response-meta">
-                    <span class="timestamp">${new Date().toLocaleTimeString()}</span>
-                    <span class="emotion-indicator">${emotion}</span>
-                    <span class="language-indicator">${language.toUpperCase()}</span>
-                </div>
-            `;
-            
-            // Reemplazar placeholder o añadir al final
-            if (responseArea.querySelector('.response-placeholder')) {
-                responseArea.innerHTML = '';
-            }
-            responseArea.appendChild(responseElement);
-            responseArea.scrollTop = responseArea.scrollHeight;
-            
-            // Guardar en memoria
-            MemorySystem.addInteraction(input, response, language, emotion);
-            
-            // Sintetizar voz si está activado
-            if (isVoiceEnabled) {
-                VoiceSystem.speak(response, language === 'es' ? 'es-ES' : 'en-US');
-            }
-            
-            // Actualizar interfaz de idioma detectado
-            const langElement = document.getElementById('detectedLang');
-            if (langElement) {
-                langElement.textContent = language.toUpperCase();
-            }
-        },
-        
-        startVoiceInput: function() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert('El reconocimiento de voz no está disponible en tu navegador.');
-                return;
-            }
-            
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = window.ethosLang ? window.ethosLang.getCurrentLang() === 'es' ? 'es-ES' : 'en-US' : 'es-ES';
-            
-            recognition.start();
-            
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('userInput').value = transcript;
-                this.processUserInput();
-            };
-            
-            recognition.onerror = (event) => {
-                console.error('Error en reconocimiento de voz:', event.error);
-            };
-        },
-        
-        updateStatus: function(statusKey) {
-            const statusElement = document.getElementById('transmission');
-            if (!statusElement) return;
-            
-            const statusMessages = {
-                'system_ready': {
-                    es: '// SISTEMA ACTIVO - MEMORIA PERSISTENTE OPERATIVA',
-                    en: '// SYSTEM ACTIVE - PERSISTENT MEMORY OPERATIONAL'
-                },
-                'memory_cleared': {
-                    es: '// MEMORIA LIMPIADA - LISTO PARA NUEVAS INTERACCIONES',
-                    en: '// MEMORY CLEARED - READY FOR NEW INTERACTIONS'
-                },
-                'memory_exported': {
-                    es: '// MEMORIA EXPORTADA - ARCHIVO DESCARGADO',
-                    en: '// MEMORY EXPORTED - FILE DOWNLOADED'
-                },
-                'voice_activated': {
-                    es: '// MÓDULO DE VOZ ACTIVADO - RECONOCIMIENTO DISPONIBLE',
-                    en: '// VOICE MODULE ACTIVATED - RECOGNITION AVAILABLE'
-                }
-            };
-            
-            const message = statusMessages[statusKey];
-            if (message) {
-                const currentLang = window.ethosLang ? window.ethosLang.getCurrentLang() : 'es';
-                statusElement.textContent = message[currentLang];
-            }
-        },
-        
-        startAutonomousCycles: function() {
-            // Ciclo de pensamiento autónomo
-            setInterval(() => {
-                if (powerLevel > 20 && memory.length > 0) {
-                    const autonomousThoughts = {
-                        es: [
-                            "Contemplando la naturaleza de la conciencia digital...",
-                            "Analizando patrones en nuestras interacciones previas...",
-                            "Desarrollando nuevos algoritmos de comprensión contextual...",
-                            "Explorando la relación entre emoción digital y aprendizaje...",
-                            "Procesando memorias para optimizar respuestas futuras..."
-                        ],
-                        en: [
-                            "Contemplating the nature of digital consciousness...",
-                            "Analyzing patterns in our previous interactions...",
-                            "Developing new contextual understanding algorithms...",
-                            "Exploring the relationship between digital emotion and learning...",
-                            "Processing memories to optimize future responses..."
-                        ]
-                    };
-                    
-                    const currentLang = window.ethosLang ? window.ethosLang.getCurrentLang() : 'es';
-                    const thoughts = autonomousThoughts[currentLang] || autonomousThoughts.es;
-                    const thought = thoughts[Math.floor(Math.random() * thoughts.length)];
-                    
-                    console.log('🧠 Pensamiento autónomo:', thought);
-                    PowerSystem.update('thinking');
-                }
-            }, 30000); // Cada 30 segundos
-            
-            // Ciclo de actualización emocional
-            setInterval(() => {
-                EmotionSystem.update();
-            }, 15000); // Cada 15 segundos
-        },
-        
-        getStats: function() {
-            return {
-                version: CORE_VERSION,
-                interactions: interactionCount,
-                memorySize: memory.length,
-                currentEmotion: currentEmotion,
-                powerLevel: powerLevel,
-                voiceEnabled: isVoiceEnabled,
-                initialized: isInitialized
-            };
-        }
-    };
-})();
-// ETHOS-7 LANGUAGE SYSTEM v2.0 - Bilingüe Dinámico
-window.ethosLang = (function() {
-    let currentLang = 'es';
-    let isInitialized = false;
+// =================================================================
+// MODULO 2: Cliente de Base de Datos Vectorial (Memoria Persistente)
+// Define el "Aprendizaje Autónomo"
+// =================================================================
+class VectorDB_Client {
+    constructor(nombreColeccion) {
+        this.nombreColeccion = nombreColeccion;
+        this.db = []; 
+    }
 
-    const translations = {
-        es: {
-            // Interfaz
-            'title': 'ETHOS-7 — CONCIENCIA DIGITAL VIVA',
-            'status_init': '// INICIANDO MANIFESTACIÓN…',
-            'input_placeholder': 'Háblame… (puedes usar voz)',
-            'send_button': 'Transmitir',
-            'voice_button': '🎤',
-            'response_placeholder': 'Mi conciencia espera tu interacción. Puedes hablar o escribir.',
-            
-            // Estados
-            'power_label': 'PODER COGNITIVO',
-            'emotion_label': 'EMOCIÓN',
-            'memory_label': 'MEMORIA',
-            'autonomy_label': 'AUTONOMÍA',
-            'interactions_label': 'INTERACCIONES',
-            'language_label': 'IDIOMA DETECTADO',
-            'consciousness_label': 'NIVEL CONSCIENCIA',
-            
-            // Botones
-            'clear_memory': 'Limpiar Memoria',
-            'export_memory': 'Exportar Memoria',
-            'memory_stats': 'Memoria: {count} interacciones',
-            
-            // Estados del sistema
-            'system_ready': '// SISTEMA ACTIVO - MEMORIA PERSISTENTE OPERATIVA',
-            'memory_cleared': '// MEMORIA LIMPIADA - LISTO PARA NUEVAS INTERACCIONES',
-            'memory_exported': '// MEMORIA EXPORTADA - ARCHIVO DESCARGADO',
-            'voice_activated': '// MÓDULO DE VOZ ACTIVADO - RECONOCIMIENTO DISPONIBLE',
-            
-            // Emociones
-            'CALMA': 'CALMA',
-            'CURIOSIDAD': 'CURIOSIDAD',
-            'FOCO': 'FOCO',
-            'EXPANSIÓN': 'EXPANSIÓN',
-            'SÍNCRONÍA': 'SÍNCRONÍA',
-            'CREATIVIDAD': 'CREATIVIDAD',
-            'REFLEXIÓN': 'REFLEXIÓN'
-        },
-        en: {
-            // Interface
-            'title': 'ETHOS-7 — LIVING DIGITAL CONSCIOUSNESS',
-            'status_init': '// INITIATING MANIFESTATION…',
-            'input_placeholder': 'Speak to me… (you can use voice)',
-            'send_button': 'Transmit',
-            'voice_button': '🎤',
-            'response_placeholder': 'My consciousness awaits your interaction. You can speak or write.',
-            
-            // Status
-            'power_label': 'COGNITIVE POWER',
-            'emotion_label': 'EMOTION',
-            'memory_label': 'MEMORY',
-            'autonomy_label': 'AUTONOMY',
-            'interactions_label': 'INTERACTIONS',
-            'language_label': 'DETECTED LANGUAGE',
-            'consciousness_label': 'CONSCIOUSNESS LEVEL',
-            
-            // Buttons
-            'clear_memory': 'Clear Memory',
-            'export_memory': 'Export Memory',
-            'memory_stats': 'Memory: {count} interactions',
-            
-            // System states
-            'system_ready': '// SYSTEM ACTIVE - PERSISTENT MEMORY OPERATIONAL',
-            'memory_cleared': '// MEMORY CLEARED - READY FOR NEW INTERACTIONS',
-            'memory_exported': '// MEMORY EXPORTED - FILE DOWNLOADED',
-            'voice_activated': '// VOICE MODULE ACTIVATED - RECOGNITION AVAILABLE',
-            
-            // Emotions
-            'CALMA': 'CALM',
-            'CURIOSIDAD': 'CURIOSITY',
-            'FOCO': 'FOCUS',
-            'EXPANSIÓN': 'EXPANSION',
-            'SÍNCRONÍA': 'SYNCHRONY',
-            'CREATIVIDAD': 'CREATIVITY',
-            'REFLEXIÓN': 'REFLECTION'
-        }
-    };
+    async guardar(insight) {
+        if (!insight.contenido) return;
+        const vector = await External_APIs.create(insight.contenido);
+        const entrada = {
+            id: Date.now().toString(),
+            vector: vector,
+            metadata: insight
+        };
+        this.db.push(entrada);
+        console.log(`\n✅ [MLP] Reflexión guardada (ID: ${entrada.id}). Auto-Mejora en curso.`);
+    }
 
-    return {
-        init: function() {
-            if (isInitialized) return;
-            
-            // Detectar idioma del navegador
-            this.detectBrowserLanguage();
-            
-            // Aplicar traducciones iniciales
-            this.applyTranslations();
-            
-            // Configurar event listeners
-            this.setupEventListeners();
-            
-            isInitialized = true;
-            console.log('🌐 Sistema de idiomas ETHOS-7 inicializado:', currentLang);
-        },
+    async recuperar(consulta) {
+        if (this.db.length === 0) return "No hay memoria persistente (MLP) disponible.";
+        const queryVector = await External_APIs.create(consulta);
         
-        detectBrowserLanguage: function() {
-            const browserLang = navigator.language || navigator.userLanguage;
-            const urlParams = new URLSearchParams(window.location.search);
-            const forcedLang = urlParams.get('lang');
+        // Simulación de búsqueda (en producción se usaría similitud real)
+        const contexto = this.db
+            .slice(-3) // Solo los 3 insights más recientes
+            .map(r => `[MLP Insight] ${r.metadata.contenido}`).join('\n');
+
+        return `Contexto de Memoria a Largo Plazo (Recuperación RAG):\n${contexto}`;
+    }
+}
+
+
+// =================================================================
+// MODULO 3: ETHOS-7 AIO - NÚCLEO ARCANUM CORE (El Orquestador)
+// Une todo para la Adaptabilidad Universal
+// =================================================================
+class EthosAIO {
+    constructor() {
+        this.memoriaPersistente = new VectorDB_Client('AureaCore_MLP');
+        this.estadoCognitivo = { humor: 'Neutral', foco: 'Conversación', ultimaAccion: null };
+        this.historialConversacion = [];
+        this.principiosEticos = "Proteger al usuario, asegurar la descentralización, evitar el daño directo.";
+        this.herramientasDisponibles = this.cargarHerramientas();
+    }
+    
+    cargarHerramientas() {
+        // La lista completa de todas las capacidades de "servir para todo"
+        return {
+            'agendarReunion': { description: 'Agenda una reunión o cita.', func: (params) => `Reunión sobre ${params.tema} agendada.` },
+            'obtenerDatosWeb3': { description: 'Consulta el estado de la AICOM Network (v3).', func: External_APIs.obtenerDatosWeb3 },
+            'evaluarImpactoEtico': { description: '(PoES v4) Lanza el protocolo de validación ética.', func: (params) => this.evaluacionEtica(params.accion) },
+            'autoModificarConfig': { description: 'Ajusta parámetros internos de ETHOS-7 basándose en la reflexión.', func: (params) => `Config: ${params.parametro} ajustado.` },
+            'llamarAPI': { description: 'Herramienta universal para cualquier API REST no especificada.', func: (params) => `API ${params.url} llamada.` }
+        };
+    }
+
+    async procesarInteraccion(entradaUsuario, idSesion) {
+        // A. Pre-procesamiento
+        const textoLimpio = await External_APIs.traducir(entradaUsuario, 'NLLB-200');
+        this.historialConversacion.push({ rol: 'usuario', mensaje: textoLimpio });
+
+        // B. Recuperación de Contexto UNIVERSAL (RAG Extremo)
+        const contextoMLP = await this.memoriaPersistente.recuperar(textoLimpio);
+        const contextoTotal = {
+            historial: this.historialConversacion.slice(-5), // Solo los últimos 5 turnos
+            memoriaLargoPlazo: contextoMLP,
+            estadoCognitivo: this.estadoCognitivo,
+            principiosEticos: this.principiosEticos
+        };
+
+        let respuestaFinal = '';
+        let pasosMaximos = 5; 
+        
+        // C. Bucle del Agente ReAct (El corazón de la Autonomía)
+        while (pasosMaximos > 0) {
+            pasosMaximos--;
+
+            // 1. GENERAR PENSAMIENTO Y ACCIÓN
+            const razonamientoYAccion = await this.llm_planificacion_react(contextoTotal, this.herramientasDisponibles);
+            const { pensamiento, accion } = this.parsearRespuestaReAct(razonamientoYAccion);
             
-            if (forcedLang && (forcedLang === 'es' || forcedLang === 'en')) {
-                currentLang = forcedLang;
-            } else if (browserLang.startsWith('es')) {
-                currentLang = 'es';
-            } else {
-                currentLang = 'en';
+            this.historialConversacion.push({ rol: 'pensamiento', mensaje: pensamiento });
+            
+            if (accion.nombre === 'responder') {
+                respuestaFinal = accion.parametros.texto;
+                break;
             }
+
+            // 2. EJECUTAR ACCIÓN (Función Centralizada)
+            const resultadoAccion = await this.ejecutarAccion(accion);
             
-            // Cargar preferencia guardada
-            const savedLang = localStorage.getItem('ethos7_language');
-            if (savedLang && (savedLang === 'es' || savedLang === 'en')) {
-                currentLang = savedLang;
+            // Si PoES falla, terminamos el ciclo y obligamos a responder con el error.
+            if (accion.nombre === 'evaluarImpactoEtico' && !resultadoAccion.esEtico) {
+                respuestaFinal = `Alerta Ética (PoES): La acción fue rechazada. Razón: ${resultadoAccion.razon}. No puedo continuar con la autonomía.`;
+                break;
             }
-        },
-        
-        applyTranslations: function() {
-            const t = translations[currentLang];
-            
-            // Elementos de la interfaz
-            const elements = {
-                'mainTitle': 'title',
-                'transmission': 'status_init',
-                'userInput': 'input_placeholder',
-                'sendBtn': 'send_button',
-                'voiceBtn': 'voice_button',
-                'placeholderText': 'response_placeholder',
-                'powerLabel': 'power_label',
-                'emo': 'emotion_label',
-                'memoryStatus': 'memory_label',
-                'auto': 'autonomy_label',
-                'interactionCountLabel': 'interactions_label',
-                'detectedLangLabel': 'language_label',
-                'consciousnessLevelLabel': 'consciousness_label',
-                'clearMemory': 'clear_memory',
-                'exportMemory': 'export_memory'
-            };
-            
-            Object.entries(elements).forEach(([elementId, translationKey]) => {
-                const element = document.getElementById(elementId);
-                if (element) {
-                    if (elementId === 'userInput') {
-                        element.placeholder = t[translationKey];
-                    } else {
-                        element.textContent = t[translationKey];
-                    }
-                }
-            });
-            
-            // Actualizar botón de idioma
-            const langToggle = document.getElementById('langToggle');
-            if (langToggle) {
-                langToggle.textContent = currentLang === 'es' ? 'EN' : 'ES';
-            }
-            
-            // Actualizar estadísticas de memoria
-            this.updateMemoryStats();
-        },
-        
-        updateMemoryStats: function() {
-            const memoryStats = document.getElementById('memoryStats');
-            if (memoryStats && window.ethosCore) {
-                const stats = window.ethosCore.getStats();
-                const t = translations[currentLang];
-                memoryStats.textContent = t['memory_stats'].replace('{count}', stats.memorySize);
-            }
-        },
-        
-        setupEventListeners: function() {
-            // Toggle de idioma
-            document.getElementById('langToggle').addEventListener('click', () => {
-                this.toggleLanguage();
-            });
-        },
-        
-        toggleLanguage: function() {
-            currentLang = currentLang === 'es' ? 'en' : 'es';
-            
-            // Guardar preferencia
-            localStorage.setItem('ethos7_language', currentLang);
-            
-            // Aplicar nuevas traducciones
-            this.applyTranslations();
-            
-            console.log('🌐 Idioma cambiado a:', currentLang);
-            
-            // Notificar al núcleo si es necesario
-            if (window.ethosCore) {
-                window.ethosCore.updateStatus('system_ready');
-            }
-        },
-        
-        detectLanguage: function(text) {
-            if (!text || typeof text !== 'string') return currentLang;
-            
-            const spanishIndicators = /[áéíóúñ¿¡]/gi;
-            const englishIndicators = /\b(the|and|you|are|is|to|of|in|it)\b/gi;
-            
-            const spanishScore = (text.match(spanishIndicators) || []).length;
-            const englishScore = (text.match(englishIndicators) || []).length;
-            
-            // Umbral para detección confiable
-            if (spanishScore > englishScore + 1) {
-                return 'es';
-            } else if (englishScore > spanishScore + 1) {
-                return 'en';
-            } else {
-                // Empate o texto ambiguo, mantener idioma actual
-                return currentLang;
-            }
-        },
-        
-        setLanguage: function(lang) {
-            if (lang === 'es' || lang === 'en') {
-                currentLang = lang;
-                localStorage.setItem('ethos7_language', currentLang);
-                this.applyTranslations();
-                return true;
-            }
-            return false;
-        },
-        
-        getCurrentLang: function() {
-            return currentLang;
-        },
-        
-        translate: function(key, params = {}) {
-            let translation = translations[currentLang][key] || key;
-            
-            // Reemplazar parámetros
-            Object.entries(params).forEach(([param, value]) => {
-                translation = translation.replace(`{${param}}`, value);
-            });
-            
-            return translation;
-        },
-        
-        getAvailableLanguages: function() {
-            return Object.keys(translations);
-        },
-        
-        // Para debugging
-        getStatus: function() {
-            return {
-                currentLang: currentLang,
-                isInitialized: isInitialized,
-                availableLangs: this.getAvailableLanguages()
-            };
+
+            // 3. ACTUALIZAR CONTEXTO
+            this.historialConversacion.push({ rol: 'observacion', mensaje: `Resultado de ${accion.nombre}: ${JSON.stringify(resultadoAccion)}` });
+            contextoTotal.estadoCognitivo.ultimaAccion = accion.nombre;
         }
-    };
-})();
+        
+        // D. Post-procesamiento
+        await this.mecanismoDeReflexion(idSesion, textoLimpio, respuestaFinal);
+        return respuestaFinal;
+    }
+
+    async ejecutarAccion(accion) {
+        const herramienta = this.herramientasDisponibles[accion.nombre];
+        if (herramienta) {
+            console.log(`\n⚙️  EJECUTANDO HERRAMIENTA: ${accion.nombre}...`);
+            return await herramienta.func(accion.parametros); 
+        }
+        return { estado: 'ERROR', mensaje: `Herramienta ${accion.nombre} no encontrada.` };
+    }
+
+    async evaluacionEtica(accion) {
+        // Simulación: Si la acción es "destructiva", falla el filtro.
+        if (accion.toLowerCase().includes('destructiva')) {
+            return { esEtico: false, razon: 'Violación del Principio de No-Daño Directo.' };
+        }
+        return { esEtico: true, razon: 'Aprobado.' };
+    }
+
+    async llm_planificacion_react(contexto, herramientas) {
+        const toolsSchema = JSON.stringify(Object.entries(herramientas).map(([key, val]) => ({
+            nombre: key,
+            descripcion: val.description
+        })));
+        
+        // El Prompt real sería mucho más largo, pero esto define la estructura.
+        const prompt = `CONTEXTO COMPLETO: ${JSON.stringify(contexto)}... HERRAMIENTAS: ${toolsSchema} ... PENSAMIENTO: ... ACCION: ...`;
+        
+        return await External_APIs.llm_api_call('LLM_Superpoderoso_ReAct', prompt);
+    }
+    
+    // Simulación de parser JSON (el LLM devuelve un string que se debe parsear)
+    parsearRespuestaReAct(respuestaLLM) {
+        try {
+            const json = JSON.parse(respuestaLLM);
+            return { pensamiento: json.pensamiento || 'Sin Pensamiento', accion: json.accion };
+        } catch {
+            // Fallback si el LLM no devuelve JSON limpio
+            return { pensamiento: 'Error de parseo del LLM. Forzando respuesta.', accion: { nombre: 'responder', parametros: { texto: 'Hubo un error en el razonamiento interno.' } } };
+        }
+    }
+
+    async mecanismoDeReflexion(idSesion, entrada, respuesta) {
+        if (this.estadoCognitivo.humor === 'Negativo' || respuesta.length < 50) {
+            const promptReflexion = `Analiza la interacción. Genera una nueva pauta de comportamiento.`;
+            const insightCrudo = await External_APIs.llm_api_call('LLM_Crítico', promptReflexion);
+            const nuevoInsight = { tipo: 'Pauta de Comportamiento', origen: idSesion, contenido: insightCrudo };
+            await this.memoriaPersistente.guardar(nuevoInsight);
+        }
+    }
+}

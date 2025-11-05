@@ -1,0 +1,31 @@
+# ethos_learning.py
+import json, os, math, random, time
+
+MEM_FILE = "ethos_memory.json"
+
+class EthosLearning:
+    def __init__(self):
+        if not os.path.exists(MEM_FILE):
+            json.dump([], open(MEM_FILE,"w"))
+        self.mem = json.load(open(MEM_FILE))
+
+    def record_experience(self, action, result):
+        entry = {
+            "action": action,
+            "result": result,
+            "ts": time.time(),
+            "score": random.uniform(0.5, 1.0)
+        }
+        self.mem.append(entry)
+        json.dump(self.mem, open(MEM_FILE,"w"), indent=2)
+
+    def get_insight(self):
+        if not self.mem:
+            return "Aún no hay experiencias suficientes."
+        avg = sum(m["score"] for m in self.mem)/len(self.mem)
+        if avg > 0.8:
+            return "El sistema ha aprendido que las decisiones actuales son estables y éticas."
+        elif avg > 0.6:
+            return "El aprendizaje indica mejora continua, se sugiere retroalimentación adicional."
+        else:
+            return "Se requiere recalibración ética y de contexto."
